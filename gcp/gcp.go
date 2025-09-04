@@ -8,6 +8,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"unicode/utf8"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/pkg/errors"
@@ -52,6 +53,10 @@ func (b *Backend) Publish(ctx context.Context, _ *hedwig.Message, payload []byte
 	err := b.ensureClient(ctx)
 	if err != nil {
 		return "", err
+	}
+
+	if utf8.Valid(payload) {
+		attributes["hedwig_encoding"] = "utf8"
 	}
 
 	clientTopic := b.client.Topic(fmt.Sprintf("hedwig-%s", topic))
